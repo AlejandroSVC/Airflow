@@ -34,7 +34,7 @@ También se debe tener un archivo Parquet con los datos de churn, que incluya un
 ```
 python name=dags/xgboost_churn_airflow.py
 ```
-## SECCIÓN 1: IMPORTACIÓN DE LIBRERÍAS Y CONFIGURACIÓN
+## Sección 1: Importación de librerías y configuración
 
 En esta sección se importan todas las librerías necesarias para ejecutar el flujo de trabajo en Airflow, así como las herramientas para procesar datos, entrenar modelos y distribuir la carga de trabajo. Esta estructura modular permite escalar el flujo según las necesidades del dataset y facilita el mantenimiento y la extensibilidad.
 ```
@@ -49,7 +49,7 @@ from airflow.operators.python import PythonOperator  	# Para crear tareas Python
 from datetime import datetime  	# Para definir fechas de inicio del DAG
 import joblib  	# Para guardar el modelo entrenado
 ```
-### VARIABLES GLOBALES
+### Variables globales
 ```
 PARQUET_PATH = '/path/to/churn_data.parquet'  	# Ruta al archivo Parquet
 TARGET_COLUMN = 'churn'  	# Nombre de la columna objetivo
@@ -57,7 +57,7 @@ MODEL_PATH = '/tmp/churn_xgb_model.pkl'  	# Ruta para guardar el modelo
 REPORT_PATH = '/tmp/churn_classification_report.txt'  	# Ruta para el reporte
 SPLIT_SIZE_MB = 100                                                    # Umbral para decidir si usar Pandas o Dask (en MB)
 ```
-## SECCIÓN 2: DEFINICIÓN DEL DAG DE AIRFLOW
+## Sección 2: Definición del DAG de airflow
 
 Aquí se define el DAG principal, asignándole un identificador único, la política de ejecución y otros parámetros. Esto permite a Airflow orquestar y monitorizar el flujo de trabajo de manera automática y repetible.
 
@@ -76,7 +76,7 @@ with DAG(
 ) as dag:
 ```
     
-## SECCIÓN 3: FUNCIÓN DE CARGA DE DATOS
+## Sección 3: Función de carga de datos
 
 Esta función decide automáticamente si cargar los datos en memoria usando Pandas para archivos pequeños, o bien utilizar Dask para procesamiento distribuido en archivos grandes. Esta lógica condicional permite escalar el flujo sin modificar el código.
 ```
@@ -106,7 +106,7 @@ Esta función decide automáticamente si cargar los datos en memoria usando Pand
         provide_context=True,  	# Permite acceso a contexto de Airflow
     )
 ```    
-## SECCIÓN 4: FUNCIÓN DE PREPROCESAMIENTO
+## Sección 4: Función de preprocesamiento
 
 En esta sección se realiza la limpieza básica y la preparación de los datos. Se eliminan valores nulos y se separan las variables predictoras de la variable objetivo. Además, se utiliza lógica condicional para tratar tanto datos en memoria como distribuidos.
 ```    
@@ -137,7 +137,7 @@ En esta sección se realiza la limpieza básica y la preparación de los datos. 
     )
 ```
 
-## SECCIÓN 5: FUNCIÓN DE ENTRENAMIENTO
+## Sección 5: Función de entrenamiento
 
 Se ajusta el modelo XGBoost para clasificación binaria utilizando los datos procesados. Se configuran parámetros estándar y se entrena el modelo, guardándose para uso futuro o despliegue.
 ```    
@@ -162,7 +162,7 @@ Se ajusta el modelo XGBoost para clasificación binaria utilizando los datos pro
     )
 ```
 
-## SECCIÓN 6: FUNCIÓN DE EVALUACIÓN Y REPORTE
+## Sección 6: Función de evaluación y reporte
 
 Se evalúa el desempeño del modelo usando el conjunto de prueba, generando un reporte de métricas estándar (precisión, recall, f1-score). El reporte se almacena para revisión posterior.
 ```    
