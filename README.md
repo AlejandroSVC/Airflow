@@ -64,16 +64,16 @@ Aquí se define el DAG principal, asignándole un identificador único, la polí
 
 ```
 default_args = {
-    'owner': 'airflow',  	        # Dueño del DAG
-    'retries': 1,  	              # Número de reintentos en caso de fallo
+    'owner': 'airflow',                                                     # Dueño del DAG
+    'retries': 1,                                                           # Número de reintentos en caso de fallo
 }
 
 with DAG(
-    dag_id='xgboost_churn_classification',  	                               # Identificador del DAG
-    default_args=default_args,  	                                           # Argumentos por defecto
-    start_date=datetime(2023, 1, 1),  	                                     # Fecha de inicio
-    schedule_interval=None,  	                                              # Ejecución manual
-    catchup=False  	                                                        # No ejecutar tareas pasadas automáticamente
+    dag_id='xgboost_churn_classification',                                  # Identificador del DAG
+    default_args=default_args,                                              # Argumentos por defecto
+    start_date=datetime(2023, 1, 1),                                        # Fecha de inicio
+    schedule_interval=None,                                                 # Ejecución manual
+    catchup=False                                                           # No ejecutar tareas pasadas automáticamente
 ) as dag:
 ```
     
@@ -86,25 +86,25 @@ Esta función decide automáticamente si cargar los datos en memoria usando Pand
         Carga el archivo Parquet usando Pandas o Dask según su tamaño.
         Devuelve un diccionario serializado para ser pasado entre tareas.
         ```
-        file_size = os.path.getsize(PARQUET_PATH) / (1024 * 1024)  	            # Tamaño en MB
-        if file_size < SPLIT_SIZE_MB:  	                                        # Si el archivo es pequeño
-            df = pd.read_parquet(PARQUET_PATH)      	                           # Carga con Pandas
-            backend = 'pandas'  	                                               # Marca el backend utilizado
-        else:  	                                                                # Si el archivo es grande
-            df = dd.read_parquet(PARQUET_PATH)  	                               # Carga con Dask
-            backend = 'dask'  	                                                 # Marca el backend utilizado
-        kwargs['ti'].xcom_push(key='backend', value=backend)  	                 # Guarda el backend en XCom
+        file_size = os.path.getsize(PARQUET_PATH) / (1024 * 1024)               # Tamaño en MB
+        if file_size < SPLIT_SIZE_MB:                                           # Si el archivo es pequeño
+            df = pd.read_parquet(PARQUET_PATH)                                  # Carga con Pandas
+            backend = 'pandas'                                                  # Marca el backend utilizado
+        else:                                                                   # Si el archivo es grande
+            df = dd.read_parquet(PARQUET_PATH)                                  # Carga con Dask
+            backend = 'dask'                                                    # Marca el backend utilizado
+        kwargs['ti'].xcom_push(key='backend', value=backend)                    # Guarda el backend en XCom
         kwargs['ti'].xcom_push(key='data_shape', value=str(df.shape))           # Guarda la forma de los datos
         df_head = df.head(100) if backend == 'dask'
                                                   else df.head()                # Muestra las primeras filas para diagnóstico
         kwargs['ti'].xcom_push(
-                                    key='data_head', value=df_head.to_json())  	# Guarda una muestra en XCom
+                                    key='data_head', value=df_head.to_json())   # Guarda una muestra en XCom
         df.to_parquet('/tmp/churn_tmp.parquet')                                 # Guarda una copia temporal para las siguientes tareas
 
     load_data_task = PythonOperator(
-        task_id='load_data',  	                                                 # Nombre de la tarea en Airflow
-        python_callable=load_data,  	                                           # Función a ejecutar
-        provide_context=True,  	                                                # Permite acceso a contexto de Airflow
+        task_id='load_data',                                                    # Nombre de la tarea en Airflow
+        python_callable=load_data,                                              # Función a ejecutar
+        provide_context=True,                                                   # Permite acceso a contexto de Airflow
     )
 ```    
 ## Sección 4: Función de preprocesamiento
@@ -112,24 +112,24 @@ Esta función decide automáticamente si cargar los datos en memoria usando Pand
 En esta sección se realiza la limpieza básica y la preparación de los datos. Se eliminan valores nulos y se separan las variables predictoras de la variable objetivo. Además, se utiliza lógica condicional para tratar tanto datos en memoria como distribuidos.
 ```    
     def preprocess_data(kwargs):
-        backend = kwargs['ti'].xcom_pull(key='backend')  	                      # Recupera el backend usado
-        if backend == 'pandas':  	                                              # Si se usó Pandas
-            df = pd.read_parquet('/tmp/churn_tmp.parquet')  	                   # Carga en Pandas
-            df = df.dropna()  	                                                 # Elimina filas con valores nulos
-        else:  	                                                                # Si se usó Dask
-            df = dd.read_parquet('/tmp/churn_tmp.parquet')  	                   # Carga en Dask
-            df = df.dropna()  	                                                 # Elimina valores nulos (distribuido)
+        backend = kwargs['ti'].xcom_pull(key='backend')                         # Recupera el backend usado
+        if backend == 'pandas':                                                 # Si se usó Pandas
+            df = pd.read_parquet('/tmp/churn_tmp.parquet')                      # Carga en Pandas
+            df = df.dropna()                                                    # Elimina filas con valores nulos
+        else:                                                                   # Si se usó Dask
+            df = dd.read_parquet('/tmp/churn_tmp.parquet')                      # Carga en Dask
+            df = df.dropna()                                                    # Elimina valores nulos (distribuido)
             df = df.compute()                                                   # Convierte a Pandas para entrenamiento
-        X = df.drop(TARGET_COLUMN, axis=1)  	                                   # Variables predictoras
-        y = df[TARGET_COLUMN]  	                                                # Variable objetivo
+        X = df.drop(TARGET_COLUMN, axis=1)                                      # Variables predictoras
+        y = df[TARGET_COLUMN]                                                   # Variable objetivo
         X_train, X_test, y_train, y_test = train_test_split(
             X, y, test_size=0.2, random_state=42
         )                                                                       # Divide en entrenamiento y prueba
-        X_train.to_parquet('/tmp/churn_X_train.parquet')  	                     # Guarda conjunto de entrenamiento
-        X_test.to_parquet('/tmp/churn_X_test.parquet')  	                       # Guarda conjunto de prueba
+        X_train.to_parquet('/tmp/churn_X_train.parquet')                        # Guarda conjunto de entrenamiento
+        X_test.to_parquet('/tmp/churn_X_test.parquet')                          # Guarda conjunto de prueba
         y_train.to_frame().
-             to_parquet('/tmp/churn_y_train.parquet')  	                        # Guarda etiquetas de entrenamiento
-        y_test.to_frame().to_parquet('/tmp/churn_y_test.parquet')  	            # Guarda etiquetas de prueba
+             to_parquet('/tmp/churn_y_train.parquet')                           # Guarda etiquetas de entrenamiento
+        y_test.to_frame().to_parquet('/tmp/churn_y_test.parquet')               # Guarda etiquetas de prueba
 
     preprocess_data_task = PythonOperator(
         task_id='preprocess_data',
@@ -143,18 +143,18 @@ En esta sección se realiza la limpieza básica y la preparación de los datos. 
 Se ajusta el modelo XGBoost para clasificación binaria utilizando los datos procesados. Se configuran parámetros estándar y se entrena el modelo, guardándose para uso futuro o despliegue.
 ```    
     def train_model(kwargs):
-        X_train = pd.read_parquet('/tmp/churn_X_train.parquet')  	              # Carga X de entrenamiento
+        X_train = pd.read_parquet('/tmp/churn_X_train.parquet')                 # Carga X de entrenamiento
         y_train = pd.read_parquet(
-                '/tmp/churn_y_train.parquet')[TARGET_COLUMN]  		                # Carga y de entrenamiento
+                '/tmp/churn_y_train.parquet')[TARGET_COLUMN]                    # Carga y de entrenamiento
         model = xgb.XGBClassifier(
-            objective='binary:logistic',  		                                    # Clasificación binaria
-            eval_metric='logloss',  		                                          # Métrica de evaluación
-            use_label_encoder=False,  		                                        # Evita advertencia
-            n_jobs=-1,  	                                                       # Uso de todos los núcleos disponibles
-            random_state=42  		                                                 # Reproducibilidad
+            objective='binary:logistic',                                        # Clasificación binaria
+            eval_metric='logloss',                                              # Métrica de evaluación
+            use_label_encoder=False,                                            # Evita advertencia
+            n_jobs=-1,                                                          # Uso de todos los núcleos disponibles
+            random_state=42                                                     # Reproducibilidad
         )                                                                       # Instancia del modelo
-        model.fit(X_train, y_train)  		                                         # Entrenamiento del modelo
-        joblib.dump(model, MODEL_PATH)  		                                      # Guarda el modelo entrenado
+        model.fit(X_train, y_train)                                             # Entrenamiento del modelo
+        joblib.dump(model, MODEL_PATH)                                          # Guarda el modelo entrenado
 
     train_model_task = PythonOperator(
         task_id='train_model',
@@ -168,14 +168,14 @@ Se ajusta el modelo XGBoost para clasificación binaria utilizando los datos pro
 Se evalúa el desempeño del modelo usando el conjunto de prueba, generando un reporte de métricas estándar (precisión, recall, f1-score). El reporte se almacena para revisión posterior.
 ```    
     def evaluate_model(kwargs):
-        X_test = pd.read_parquet('/tmp/churn_X_test.parquet')  			              # Carga X de prueba
+        X_test = pd.read_parquet('/tmp/churn_X_test.parquet')                   # Carga X de prueba
         y_test = pd.read_parquet(
-                         '/tmp/churn_y_test.parquet')[TARGET_COLUMN]  		        # Carga y de prueba
-        model = joblib.load(MODEL_PATH)  			                                    # Carga el modelo entrenado
-        y_pred = model.predict(X_test)  			                                     # Predicciones
-        report = classification_report(y_test, y_pred)  			                     # Genera reporte
+                         '/tmp/churn_y_test.parquet')[TARGET_COLUMN]            # Carga y de prueba
+        model = joblib.load(MODEL_PATH)                                         # Carga el modelo entrenado
+        y_pred = model.predict(X_test)                                          # Predicciones
+        report = classification_report(y_test, y_pred)                          # Genera reporte
         with open(REPORT_PATH, 'w') as f:
-            f.write(report)  		                                                 # Guarda el reporte en un archivo
+            f.write(report)                                                     # Guarda el reporte en un archivo
 
     evaluate_model_task = PythonOperator(
         task_id='evaluate_model',
@@ -185,7 +185,7 @@ Se evalúa el desempeño del modelo usando el conjunto de prueba, generando un r
 ```
 ## Definición del orden de las tareas en el DAG
 ```
-load_data_task >> preprocess_data_task >> train_model_task >> evaluate_model_task    # Encadenamiento
+load_data_task >> preprocess_data_task >> train_model_task >> evaluate_model_task     # Encadenamiento
 ```
 
 # Resumen y Recomendaciones de Uso
