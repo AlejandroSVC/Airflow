@@ -38,23 +38,24 @@ python name=dags/xgboost_churn_airflow.py
 
 En esta sección se importan todas las librerías necesarias para ejecutar el flujo de trabajo en Airflow, así como las herramientas para procesar datos, entrenar modelos y distribuir la carga de trabajo. Esta estructura modular permite escalar el flujo según las necesidades del dataset y facilita el mantenimiento y la extensibilidad.
 ```
-import os  	                                                                # Para operaciones con archivos y rutas
-import pandas as pd  	                                                      # Para manipulación de datos en memoria
-import dask.dataframe as dd  	                                              # Procesamiento distribuido de datos grandes
-import xgboost as xgb  	                                                    # Para el modelo de clasificación XGBoost
-from sklearn.model_selection import train_test_split  	                     # Para dividir el dataset
-from sklearn.metrics import classification_report  	                        # Para evaluar el modelo
-from airflow import DAG  	                                                  # Para definir y gestionar el DAG en Airflow
-from airflow.operators.python import PythonOperator  	                      # Para crear tareas Python
-from datetime import datetime  	                                            # Para definir fechas de inicio del DAG
-import joblib  	                                                            # Para guardar el modelo entrenado
+import os                                                                  # Para operaciones con archivos y rutas
+import pandas as pd                                                        # Para manipulación de datos en memoria
+import dask.dataframe as dd                                                # Procesamiento distribuido de datos grandes
+import xgboost as xgb                                                      # Para el modelo de clasificación XGBoost
+from sklearn.model_selection import train_test_split                       # Para dividir el dataset
+from sklearn.metrics import classification_report                          # Para evaluar el modelo
+from airflow import DAG                                                    # Para definir y gestionar el DAG en Airflow
+from airflow.operators.python import PythonOperator                        # Para crear tareas Python
+from datetime import datetime                                              # Para definir fechas de inicio del DAG
+import joblib                                                              # Para guardar el modelo entrenado
+
 ```
 ### Variables globales
 ```
-PARQUET_PATH = '/path/to/churn_data.parquet'  	                             # Ruta al archivo Parquet
-TARGET_COLUMN = 'churn'  	                                                  # Nombre de la columna objetivo
-MODEL_PATH = '/tmp/churn_xgb_model.pkl'  	                                  # Ruta para guardar el modelo
-REPORT_PATH = '/tmp/churn_classification_report.txt'  	                     # Ruta para el reporte
+PARQUET_PATH = '/path/to/churn_data.parquet'                                # Ruta al archivo Parquet
+TARGET_COLUMN = 'churn'                                                     # Nombre de la columna objetivo
+MODEL_PATH = '/tmp/churn_xgb_model.pkl'                                     # Ruta para guardar el modelo
+REPORT_PATH = '/tmp/churn_classification_report.txt'                        # Ruta para el reporte
 SPLIT_SIZE_MB = 100                                                         # Umbral para decidir si usar Pandas o Dask (en MB)
 ```
 ## Sección 2: Definición del DAG de airflow
