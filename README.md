@@ -208,8 +208,12 @@ Este flujo de trabajo en Airflow permite procesar y modelar datos de churn de cl
 ## Fuentes
 
 •   [Apache Airflow Docs](https://airflow.apache.org/docs/apache-airflow/stable/)
+
 •   [XGBoost Documentation](https://xgboost.readthedocs.io/en/stable/)
+
 •   [Dask for Big Data](https://docs.dask.org/en/stable/)
+
 •   [Pandas Parquet](https://pandas.pydata.org/docs/reference/api/pandas.read_parquet.html)
+
 •   [Scikit-learn Model Evaluation](https://scikit-learn.org/stable/modules/model_evaluation.html)
 
