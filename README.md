@@ -162,7 +162,7 @@ Se ajusta el modelo XGBoost para clasificación binaria utilizando los datos pro
     )
 ```
 
-# SECCIÓN 6: FUNCIÓN DE EVALUACIÓN Y REPORTE
+## SECCIÓN 6: FUNCIÓN DE EVALUACIÓN Y REPORTE
 
 Se evalúa el desempeño del modelo usando el conjunto de prueba, generando un reporte de métricas estándar (precisión, recall, f1-score). El reporte se almacena para revisión posterior.
 ```    
